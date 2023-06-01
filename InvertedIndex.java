@@ -1,14 +1,18 @@
 import java.io.Serializable;
+import java.util.HashMap;
+
 
 
 /**
  * Implements an inverted index. This class maps a words to a PageSet.
  */
 public class InvertedIndex implements Serializable {
+  HashMap<String, PageSet> map;
     /**
      * Create an invertex index
      */
     public InvertedIndex() {
+      map = new HashMap();
     }
 
     /**
@@ -18,7 +22,10 @@ public class InvertedIndex implements Serializable {
      * @return The PageSet (set of pages) that the word occurs in
      */
     public PageSet lookup(String word) {
-        return null;
+        if(!map.containsKey(word)) {
+          return new PageSet();
+        }
+        return map.get(word);
     }
 
     /**
@@ -30,6 +37,16 @@ public class InvertedIndex implements Serializable {
      * @param page The page that the words are on.
      */
     public void add(String[] words, Page page) {
+      for(String word : words) {
+        if(!map.containsKey(word)) {
+          PageSet newEntry = new PageSet();
+          newEntry.add(page);
+          map.put(word, newEntry);
+        }
+        else {
+          map.get(word).add(page);
+        }
+      }
     }
 
     /**
