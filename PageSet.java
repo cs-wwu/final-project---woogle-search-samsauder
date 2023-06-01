@@ -1,15 +1,18 @@
 import java.io.Serializable;
 import java.util.Iterator;
-
+import java.util.HashSet;
 
 /*
  * A set of pages. It is used in the InvertedIndex.
  */
 public class PageSet implements Serializable {
+
+  HashSet<Page> set;
     /**
      * Create an empty page set
      */
     public PageSet() {
+      this.set = new HashSet();
     }
 
     /**
@@ -19,7 +22,7 @@ public class PageSet implements Serializable {
      * @return True if the page was added successfully, false otherwise.
      */
     public boolean add(Page page) {
-        return false;
+        return set.add(page);
     }
 
     /**
@@ -31,14 +34,14 @@ public class PageSet implements Serializable {
      * @return True if the set contains this page, or false otherwise
      */
     public boolean contains(Page page) {
-        return false;
+        return set.contains(page);
     }
 
     /**
      * Return the number of elements in the set
      */
     public int size() {
-        return 0;
+        return set.size();
     }
 
     /**
@@ -46,7 +49,7 @@ public class PageSet implements Serializable {
      * set
      */
     public Iterator<Page> iterator() {
-        return null;
+        return set.iterator();
     }
 
     /**
@@ -57,6 +60,16 @@ public class PageSet implements Serializable {
      * @return A page set that is the intersection of both sets
      */
     public PageSet intersect(PageSet other) {
-        return null;
+
+        PageSet result = new PageSet();
+        Iterator<Page> it = other.iterator();
+        while(it.hasNext()) {
+          Page currentPage = it.next();
+
+          if(this.contains(currentPage)) {
+            result.add(currentPage);
+          }
+        }
+        return result;
     }
 }
