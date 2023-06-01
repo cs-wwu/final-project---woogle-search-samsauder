@@ -1,0 +1,174 @@
+{
+  "tests": [
+    {
+      "name": "Test TextCleaner Lower Casing",
+      "setup": "",
+      "run": "make test-text-cleaner-lowercasing",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 3
+    },
+    {
+      "name": "Test Text Cleaner Non Alpha Removal",
+      "setup": "",
+      "run": "make test-text-cleaner-nonalpha",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 3
+    },
+    {
+      "name": "Test TextCleaner stopwords",
+      "setup": "",
+      "run": "make test-text-cleaner-stopwords",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 4
+    },
+    {
+      "name": "Test PageSet add",
+      "setup": "",
+      "run": "make test-page-set-add",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 3
+    },
+    {
+      "name": "Test PageSet contains",
+      "setup": "",
+      "run": "make test-page-set-contains",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 2
+    },
+    {
+      "name": "Test PageSet intersect",
+      "setup": "",
+      "run": "make test-page-set-intersect",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 3
+    },
+    {
+      "name": "Test PageSet iterator",
+      "setup": "",
+      "run": "make test-page-set-iterator",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 2
+    },
+    {
+      "name": "Test InvertedIndex Add",
+      "setup": "",
+      "run": "make test-inverted-index-add",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 2
+    },
+    {
+      "name": "Test InvertedIndex Lookup Not Present",
+      "setup": "",
+      "run": "make test-inverted-index-lookup-notpresent",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 6
+    },
+    {
+      "name": "Test InvertedIndex Lookup Single Page",
+      "setup": "",
+      "run": "make test-inverted-index-lookup-singlepage",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 6
+    },
+    {
+      "name": "Test InvertedIndex Lookup Multi Page",
+      "setup": "",
+      "run": "make test-inverted-index-lookup-multipage",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 6
+    },
+    {
+      "name": "Test Crawl limited crawl",
+      "setup": "",
+      "run": "make test-crawl-limited",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test Crawl deeper crawl",
+      "setup": "",
+      "run": "make test-crawl-deeper",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test Crawl writing of inverted index",
+      "setup": "",
+      "run": "make test-crawl-write",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test Search read",
+      "setup": "",
+      "run": "make test-search-read",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test Search lookup single word",
+      "setup": "",
+      "run": "make test-search-lookup-single",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test Search lookup multi words",
+      "setup": "",
+      "run": "make test-search-lookup-multi",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    }
+  ]
+}
