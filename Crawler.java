@@ -1,5 +1,8 @@
 import java.io.IOException;
-
+import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 
 
 /**
@@ -8,6 +11,10 @@ import java.io.IOException;
  * expression, and only crawls to a specified depth
  */
 public class Crawler {
+  String filename;
+  ArrayList<Page> visitedLinks;
+  InvertedIndex index;
+
     /**
      * Create a web crawler that saves the inverted index to the given
      * filename
@@ -15,6 +22,9 @@ public class Crawler {
      * @param filename The file to save the inverted index to
      */
     public Crawler(String filename) {
+      this.filename = filename;
+      visitedLinks = new ArrayList();
+      index = new InvertedIndex();
     }
 
     /**
@@ -28,7 +38,52 @@ public class Crawler {
      * @return An inverted index formed by indexing the pages
      */
     public InvertedIndex visit(String link, String hostPattern, int depth) {
-        return null;
+      String baseLink = PageDigest.toBaseUrl(link); //Store base URL
+      PageDigest digest;
+      TextCleaner cleaner;
+      //Check if page has been visited only if there are elements in visitedLinks
+      if(visitedLinks.size() > 0) {
+
+        //Check if the link given is already in VisitedLinks
+        for(Page p : visitedLinks) {
+          if(p.getLink() == baseLink) {
+            p.increaseRank(); //Increase rank of page if link is found in list
+            return index;
+          }
+        }
+      }
+
+      //If page has not been visited
+      Page newPage = new Page(link); //Create a new page & add page to VisitedLinks
+      visitedLinks.add(new Page(baseLink));
+
+      try {
+        //Get text from webpage and clean the text
+        cleaner = new TextCleaner();
+        digest = new PageDigest(newPage.getLink());
+        String[] words = cleaner.clean(digest.getWords());
+
+        //Add text and page to index
+        index.add(words, newPage);
+      }
+      catch(Exception e) {
+        return index;
+      }
+
+
+      //Decrement the depth and recursively loop
+
+      if(depth >= 0) {
+        ArrayList<String> links = digest.getLinks(); //Stores links found on URL
+        for(String hostname : links) {
+
+          //Check if hostname contains the hostPattern format
+          if(Pattern.matches(hostPattern, hostname)) {
+          return visit(hostname, hostPattern, depth - 1); //Loop
+          }
+        }
+      }
+      return index;
     }
 
     /**
@@ -36,6 +91,10 @@ public class Crawler {
      * given in the constructor
      */
     public void saveInvertedIndex() throws IOException {
+      FileOutputStream fs = new FileOutputStream(filename);
+      ObjectOutputStream out = new ObjectOutputStream(fs);
+      out.writeObject(index);
+
     }
 
     public static void main(String[] args) throws IOException {
