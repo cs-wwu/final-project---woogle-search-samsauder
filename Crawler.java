@@ -1,8 +1,14 @@
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 
 /**
@@ -11,9 +17,9 @@ import java.io.ObjectOutputStream;
  * expression, and only crawls to a specified depth
  */
 public class Crawler {
-  String filename;
-  ArrayList<Page> visitedLinks;
-  InvertedIndex index;
+    String filename;
+    ArrayList<Page> visitedPages; // string arraylist of pages with base urls
+    InvertedIndex index;
 
     /**
      * Create a web crawler that saves the inverted index to the given
@@ -22,9 +28,9 @@ public class Crawler {
      * @param filename The file to save the inverted index to
      */
     public Crawler(String filename) {
-      this.filename = filename;
-      visitedLinks = new ArrayList();
-      index = new InvertedIndex();
+        this.filename = filename;
+        visitedPages = new ArrayList<>();
+        index = new InvertedIndex();
     }
 
     /**
@@ -38,69 +44,145 @@ public class Crawler {
      * @return An inverted index formed by indexing the pages
      */
     public InvertedIndex visit(String link, String hostPattern, int depth) {
-      String baseLink = PageDigest.toBaseUrl(link); //Store base URL
-      PageDigest digest;
-      TextCleaner cleaner;
-      //Check if page has been visited only if there are elements in visitedLinks
-      if(visitedLinks.size() > 0) {
+        // visit pseudocode:
+        // 1) Check if the page was visited before
+            // never visited before
+            // visited before
+        // 2) Index the page
+            // get words
+            // clean words
+            // add words and page to InvertedIndex
+        // 3) Decrement the depth
+            // get links
+            // if link matches host pattern
+                // recursively visit each link
+            // if link does not match host pattern
+                // nothing
 
-        //Check if the link given is already in VisitedLinks
-        for(Page p : visitedLinks) {
-          if(p.getLink() == baseLink) {
-            p.increaseRank(); //Increase rank of page if link is found in list
+
+
+        /*if(depth < 0){
             return index;
-          }
+        }*/
+
+        //System.out.println("pagesVisited duplicates? " + Crawler.containsDuplicates(visitedPages));
+
+        // 1)
+        System.out.println("[" + depth +  "] Visiting " + link);
+
+        String bLink = PageDigest.toBaseUrl(link); // base link
+        Page newPage;
+
+        if(visitedPages.size() != 0){ // if arraylist of visited URLs is not empty
+            for(int i = 0; i < visitedPages.size(); i++){
+                String currentLink = visitedPages.get(i).getLink();
+
+                if(bLink.equals(currentLink)){ // bLink has been visited
+                    newPage = new Page(bLink); // page from bLink
+                    visitedPages.set(i, newPage);
+                    index.increaseEveryRankOf(newPage);
+                    return index;
+                }
+            }
         }
-      }
 
-      //If page has not been visited
-      Page newPage = new Page(link); //Create a new page & add page to VisitedLinks
-      visitedLinks.add(new Page(baseLink));
 
-      try {
-        //Get text from webpage and clean the text
-        cleaner = new TextCleaner();
-        digest = new PageDigest(newPage.getLink());
-        String[] words = cleaner.clean(digest.getWords());
+        // bLink has not been visited
+        newPage = new Page(bLink);
+        visitedPages.add(newPage);
 
-        //Add text and page to index
-        index.add(words, newPage);
-      }
-      catch(Exception e) {
+        // 2)
+        TextCleaner t = new TextCleaner();
+        PageDigest d = Crawler.pageDigestOf(link); // PageDigest for link
+
+        if(d == null){
+            return index;
+        }
+
+        String[] words = d.getWords(); // array of all words at the link
+        String[] wordsC = t.clean(words); // cleaned words
+        index.add(wordsC, newPage); // add words and page to inverted index
+
+        // 3)
+        depth--;
+        if(depth >= 0){
+            ArrayList<String> links = d.getLinks(); // all links on current page
+
+            // current link
+            for (String l : links) {
+                String hostName = Crawler.hostnameOf(l); // current hostname of link
+
+                if(Pattern.matches(hostPattern, hostName)) { // if hostName matches passed hostPattern
+                    visit(l, hostPattern, depth);
+                }
+            }
+        }
+
         return index;
-      }
-
-
-      //Decrement the depth and recursively loop
-
-      if(depth >= 0) {
-        ArrayList<String> links = digest.getLinks(); //Stores links found on URL
-        for(String hostname : links) {
-
-          //Check if hostname contains the hostPattern format
-          if(Pattern.matches(hostPattern, hostname)) {
-          return visit(hostname, hostPattern, depth - 1); //Loop
-          }
-        }
-      }
-      return index;
     }
-
     /**
      * Save the inverted index to disk. The filename to save to was
      * given in the constructor
      */
     public void saveInvertedIndex() throws IOException {
-      FileOutputStream fs = new FileOutputStream(filename);
-      ObjectOutputStream out = new ObjectOutputStream(fs);
-      out.writeObject(index);
-
+        FileOutputStream fs = new FileOutputStream(filename);
+        ObjectOutputStream out = new ObjectOutputStream(fs);
+        out.writeObject(index);
+        out.close();
+        fs.close();
     }
+    public static PageDigest pageDigestOf(String link){
+        PageDigest pd;
+        try {
+            pd = new PageDigest(link);
+        }catch(Exception e){
+            //System.out.println("io error");
+            pd = null;
+        }
+
+        return pd;
+    }
+
+    public static String hostnameOf(String link){
+        try{
+            URL url = new URL(link);
+            return url.getHost(); // gets hostname of url
+        }catch(MalformedURLException e){
+            return null;
+        }
+    }
+
+    public static boolean containsDuplicates(ArrayList<Page> pageAL){ // returns true if pageArrayList has duplicate pages
+        for(int i = 0; i < pageAL.size(); i++) {
+            Page currentPage = pageAL.get(i); // ith page
+            int occurrencesOfPage = Collections.frequency(pageAL, currentPage);
+            if(occurrencesOfPage > 1){
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public static void main(String[] args) throws IOException {
-        System.out.println("Crawling...");
+        /*System.out.println("\nCrawling...");
         Crawler crawler = new Crawler("inverted_index.ser");
-        crawler.visit("https://wwu.edu", ".*wwu.edu", 3);
-        crawler.saveInvertedIndex();
+        crawler.visit("https://wwu.edu", ".*wwu.edu", 1);
+        crawler.saveInvertedIndex();*/
+
+        /*// Testing containsDuplicates
+        Page a = new Page(PageDigest.toBaseUrl("https://google.com"));
+        Page b = new Page(PageDigest.toBaseUrl("https://lichess.org"));
+        Page c = new Page(PageDigest.toBaseUrl("https://www.youtube.org"));
+        Page d = new Page(PageDigest.toBaseUrl("https://www.chess.com"));
+
+        ArrayList<Page> testList = new ArrayList<>();
+        testList.add(a);
+        testList.add(b);
+        testList.add(c);
+
+        System.out.println(Crawler.containsDuplicates(testList));*/
+
     }
+
 }

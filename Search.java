@@ -1,4 +1,5 @@
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.net.URL;
@@ -11,6 +12,10 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+
 
 public class Search {
     /**
@@ -18,7 +23,13 @@ public class Search {
      *
      * @param filename The name of the file to read the saved inverted index
      */
+    InvertedIndex ii; // current invertedIndex
     public Search(String filename) throws IOException, ClassNotFoundException {
+        // reconstruct from file
+        FileInputStream is = new FileInputStream(filename);
+        ObjectInputStream in = new ObjectInputStream(is);
+        InvertedIndex index = (InvertedIndex) in.readObject(); // read inverted index
+        ii = index; // update inverted index
     }
 
     /**
@@ -31,7 +42,19 @@ public class Search {
      * @param depth The number of levels to crawl
      */
     public Search(String link, String hostPattern, int depth) {
+        // create a search object
+        Crawler crawler = new Crawler("inverted_index.ser");
+
+        ii = crawler.visit(link, hostPattern, depth); // crawl with inputs
+
+        try {
+            crawler.saveInvertedIndex();
+            //System.out.println("saved");
+        }catch(Exception e){ // catch ioexception
+
+        }
     }
+
 
     /**
      * Search the inverted index for the given query words. The result
@@ -42,17 +65,80 @@ public class Search {
      * @return An array of Pages that is the query result.
      */
     public Page[] search(String[] queryWords) {
-        return new Page[0];
+        // Use TextCleaner to clean the user's query
+        System.out.println("# of query words: " + queryWords.length);
+        TextCleaner t = new TextCleaner(); // new TextCleaner
+        String[] queryWordsC = t.clean(queryWords); // cleaned queryWords
+
+
+        // Use InvertedIndex to look up the PageSets for each word
+        System.out.println("\nSearch query " + Arrays.toString(queryWordsC));
+
+        PageSet[] otherPageSets = new PageSet[queryWordsC.length - 1];
+
+        PageSet firstPageSet = ii.lookup(queryWordsC[0]); // PageSet associated with the first query word
+
+        for(int i = 1; i < queryWordsC.length; i++){ // for each query word
+            PageSet currentPageSet = ii.lookup(queryWordsC[i]); // the PageSet associated with the ith query word
+            otherPageSets[i - 1] = currentPageSet; // update otherPageSets
+        }
+
+
+        // Find the intersection of all the PageSets
+        PageSet intersectPS;
+        if(queryWordsC.length > 1){ // more than one query word
+            intersectPS = firstPageSet.intersectAll(otherPageSets);
+        }else{ // only one query word
+            intersectPS = firstPageSet;
+        }
+
+        // Sort pages by rank from high to low
+        Iterator<Page> it = intersectPS.iterator(); // new iterator
+        List<Page> pagesL = new ArrayList<>(); // starting pages list
+
+        while(it.hasNext()){
+            pagesL.add(it.next());
+        }
+
+        Page[] pages = new Page[pagesL.size()];
+        pagesL.sort(Collections.reverseOrder());
+
+
+        // Print and return result
+        pages = pagesL.toArray(pages); // newly sorted Pages[] array
+
+
+        for(Page p : pages){
+            System.out.println("        " + p.getLink() + ", rank=" + p.getRank());
+        }
+
+        return pages;
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        System.out.println("Search");
-        Search search = new Search("inverted_index.ser");
-        String[] queryWords = new String[] { "research", "funding" };
-        Page[] sorted = search.search(queryWords);
-        for (Page p: sorted) {
-            System.out.println(p);
-        }
+//        Search s = new Search("https://wwu.edu", ".*wwu.edu", 1);
+//        String[] queryWords = {"research"};
+//        //Page[] pageResults = s.search(queryWords);
+//        Page[] pageResults = s.search(queryWords);
+//        //System.out.println(pageResults);
+//        //System.out.println("\nResults: " + Arrays.toString(pageResults));
+
+        Search search;
+        String SERIALIZATIONFILE = "crawl_test.ser";
+        String LINK = "https://wwu.edu";
+        String HOSTPATTERN = ".*wwu.edu";
+
+        Search s = new Search(LINK, HOSTPATTERN, 2);
+        String[] queryWords = new String[] { "about" };
+        //String[] queryWords = new String[] { "research", "funding" };
+
+        Page[] result = s.search(queryWords);
+        //System.out.println(Arrays.toString(result));
+
+
+        //assertTrue(result.length > 1);
+        //assertTrue(contains(result, "gradschool"));
+        //assertTrue(contains(result, "foundation"));
 
     }
 }

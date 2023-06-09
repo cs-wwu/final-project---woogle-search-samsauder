@@ -18,6 +18,10 @@ public class Page implements Serializable, Comparable<Page> {
         this.link = link;
         this.rank = 1;
     }
+    public Page(String link, int rank) {
+        this.link = link;
+        this.rank = rank;
+    }
 
     public String getLink() {
         return link;
@@ -67,4 +71,6 @@ public class Page implements Serializable, Comparable<Page> {
     public int hashCode() {
         return link.hashCode();
     }
+
+
 }
